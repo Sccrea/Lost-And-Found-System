@@ -4,6 +4,8 @@
 
 运行main_app.py以启动
 
+WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](https://wwbwa.lanzoue.com/ipOoc3mlazpc)
+
 以下是失物招领管理系统中所有函数的意义解释，按模块划分。
 
 ---
