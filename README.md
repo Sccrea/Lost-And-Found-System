@@ -2,7 +2,7 @@
 
 失物招领系统 使用Python语言编写
 
-运行main_app.py以启动
+**运行main_app.py以启动**
 
 WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](https://wwbwa.lanzoue.com/ipOoc3mlazpc)
 
