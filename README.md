@@ -11,7 +11,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 ---
 
 ## 目录
-1. [config.py](#1-config.py)
+1. [config.py](#1-configpy)
 
 ## 1. config.py
 
