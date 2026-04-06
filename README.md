@@ -12,6 +12,15 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ## 目录
 1. [config.py](#1-configpy)
+2. [lock_manager.py](#2-lock_managerpy)
+3. [photo_manager.py](#3-photo_manager.py)
+4. [database_manager.py](#4-database_managerpy)
+5. [cleanup_manager.py](#5-cleanup_managerpy)
+6. [counter_manager.py](#6-counter_managerpy)
+7. [store_ui.py (类 `StoreUI`)](#7-store_uipy-类-StoreUI)
+8. [take_ui.py (类 `TakeUI`)](#8-take_uipy-类-TakeUI)
+9. [main_app.py (类 `LostAndFoundApp`)](#9-main_apppy-类-LostAndFoundApp)
+10. [顶层函数 `main()`](#10-顶层函数-main)
 
 ## 1. config.py
 
