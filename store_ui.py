@@ -84,10 +84,9 @@ class StoreUI:
             messagebox.showwarning("输入错误", "请先拍照！")
             return
 
-        # 生成新照片名并保存
-        new_number = counter_manager.count()
+        # 生成新照片名
+        new_number = counter_manager.get_count() + 1
         new_photo_name = f"{new_number}.jpg"
-        photo_manager.save_temp_photo_to_images(new_photo_name)
 
         self.temp_item_type = item_type
         self.temp_photo_name = new_photo_name
@@ -142,6 +141,8 @@ class StoreUI:
         # 更新锁状态为已用
         lock_manager.update_lock_info(lock_id=locker_id, status=1)
         # 保存到数据库
+        photo_manager.save_temp_photo_to_images(self.temp_photo_name)
+        counter_manager.count()
         database_manager.save_item_record(store_time, self.temp_item_type, self.temp_photo_name, locker_id)
         messagebox.showinfo("操作成功", f"正在打开 {locker_id} 号柜...\n\n物品存放成功！\n类型：{self.temp_item_type}\n柜子：{locker_id}号柜")
         self.parent.show_main_interface()
