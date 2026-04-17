@@ -10,7 +10,7 @@
 pip install -r requirements.txt
 ```
 
-或使用国内镜像源安装:
+或使用国内清华大学镜像源安装:
 
 ```bash
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
