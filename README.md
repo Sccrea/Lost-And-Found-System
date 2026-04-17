@@ -4,6 +4,18 @@
 
 **运行main_app.py以启动**
 
+安装依赖:
+
+```bash
+pip install -r requirements.txt
+```
+
+或使用国内镜像源安装:
+
+```bash
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
 WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](https://wwbwa.lanzoue.com/ipOoc3mlazpc)
 
 以下是失物招领管理系统中所有函数的意义解释，按模块划分。
