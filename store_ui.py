@@ -4,6 +4,7 @@ import photo_manager
 import lock_manager
 import database_manager
 import counter_manager
+import open_lock
 from datetime import datetime
 import os
 
@@ -144,5 +145,6 @@ class StoreUI:
         photo_manager.save_temp_photo_to_images(self.temp_photo_name)
         counter_manager.count()
         database_manager.save_item_record(store_time, self.temp_item_type, self.temp_photo_name, locker_id)
+        open_lock.open_lock(lock_number=locker_id)
         messagebox.showinfo("操作成功", f"正在打开 {locker_id} 号柜...\n\n物品存放成功！\n类型：{self.temp_item_type}\n柜子：{locker_id}号柜")
         self.parent.show_main_interface()
