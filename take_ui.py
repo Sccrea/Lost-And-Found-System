@@ -4,6 +4,7 @@ from datetime import datetime
 import lock_manager
 import database_manager
 import photo_manager
+import open_lock
 import config
 import os
 
@@ -131,6 +132,7 @@ class TakeUI:
         take_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         database_manager.update_take_record(locker_id, self.taker_name, take_time)
         lock_manager.update_lock_info(lock_id=locker_id, status=0)
+        open_lock.open_lock(lock_number=locker_id)
         messagebox.showinfo("取物成功", f"正在打开 {locker_id} 号柜...\n\n取物成功！\n柜子：{locker_id}号柜\n物品：{item['item_type']}\n取物人：{self.taker_name}")
         self.parent.show_main_interface()
 
