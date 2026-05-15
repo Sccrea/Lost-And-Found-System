@@ -46,26 +46,25 @@ def control_lock(serial_port, device_addr, lock_num, action, duration=5):
 # 主程序
 def open_lock(lock_number):
     num=lock_number
-    if __name__ == "__main__":
-        # 配置串口 (根据实际设备修改)
-        ser = serial.Serial(
-            port='/dev/ttyUSB0',   # USB转485设备
-            baudrate=9600,          # 常见波特率
-            bytesize=8,
-            parity='N',
-            stopbits=1,
-            timeout=0.5
-        )
-    
-        try:
-        #控制地址01的设备，第1路开锁
-            control_lock(ser, 0x00, num, 1)
-            
-            # 控制地址02的设备，第4路关锁
-            # control_lock(ser, 0x02, 0x03, 0)
+    # 配置串口 (根据实际设备修改)
+    ser = serial.Serial(
+        port='/dev/ttyUSB0',   # USB转485设备
+        baudrate=9600,          # 常见波特率
+        bytesize=8,
+        parity='N',
+        stopbits=1,
+        timeout=0.5
+    )
+
+    try:
+    #控制地址01的设备，第1路开锁
+        control_lock(ser, 0x00, num, 1)
         
-        except Exception as e:
-            print(f"错误: {str(e)}")
-        finally:
-            ser.close()
+        # 控制地址02的设备，第4路关锁
+        # control_lock(ser, 0x02, 0x03, 0)
+    
+    except Exception as e:
+        print(f"错误: {str(e)}")
+    finally:
+        ser.close()
     print(num)
