@@ -29,10 +29,11 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 4. [database_manager.py](#4-database_managerpy)
 5. [cleanup_manager.py](#5-cleanup_managerpy)
 6. [counter_manager.py](#6-counter_managerpy)
-7. [store_ui.py (类 `StoreUI`)](#7-store_uipy-类-StoreUI)
-8. [take_ui.py (类 `TakeUI`)](#8-take_uipy-类-TakeUI)
-9. [main_app.py (类 `LostAndFoundApp`)](#9-main_apppy-类-LostAndFoundApp)
-10. [顶层函数 `main()`](#10-顶层函数-main)
+7. [open_lock.py](#7-open_lockpy)
+8. [store_ui.py (类 `StoreUI`)](#8-store_uipy-类-StoreUI)
+9. [take_ui.py (类 `TakeUI`)](#9-take_uipy-类-TakeUI)
+10. [main_app.py (类 `LostAndFoundApp`)](#9-main_apppy-类-LostAndFoundApp)
+11. [顶层函数 `main()`](#10-顶层函数-main)
 
 ## 1. config.py
 
@@ -100,7 +101,17 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 7. store_ui.py (类 `StoreUI`)
+## 7. open_lock.py
+
+| 函数名 | 参数 | 返回值 | 意义 |
+|--------|------|--------|------|
+| `crc16` | `data`：bytes 或 bytearray 类型，需要计算 CRC 的数据 | `int` | 对输入数据计算 Modbus RTU 标准的 CRC‑16 校验值。采用多项式 `0x8005`、初始值 `0xFFFF`、数据与结果均按位反转，完全兼容 Modbus 协议。 |
+| `control_lock` | `serial_port`：`serial.Serial` 对象，已打开的串口<br>`device_addr`：`int`，锁控板地址（1‑255）<br>`lock_num`：`int`，锁路号（0‑7）<br>`action`：`int`，0 为关锁，1 为开锁<br>`duration`：`int`，开锁持续时间（秒），默认 5 | `None` | 向指定串口发送自定义的 Modbus RTU 指令（基于功能码 05），控制锁控板上某一锁路的开关。若 `duration > 0`，还会追加持续时间字段（非标准扩展）。发送后等待 100 ms 并读取应答。 |
+| `open_lock` | `lock_number`：`int`，期望打开的锁路号 | `None` | 封装打开指定锁路的操作，通过串口 `/dev/ttyUSB0`（9600,8N1）向地址 `0x00` 的锁控板发送开锁指令。|
+
+---
+
+## 8. store_ui.py (类 `StoreUI`)
 
 ### 类属性
 | 属性 | 意义 |
@@ -127,7 +138,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 8. take_ui.py (类 `TakeUI`)
+## 9. take_ui.py (类 `TakeUI`)
 
 ### 类属性
 | 属性 | 意义 |
@@ -155,7 +166,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 9. main_app.py (类 `LostAndFoundApp`)
+## 10. main_app.py (类 `LostAndFoundApp`)
 
 ### 类属性
 | 属性 | 意义 |
@@ -175,7 +186,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 10. 顶层函数 `main()`
+## 11. 顶层函数 `main()`
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
