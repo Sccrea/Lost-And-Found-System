@@ -11,6 +11,9 @@ DB_PATH = os.path.join(FILES_DIR, "lost_and_found.db")
 LOCK_INFO_PATH = os.path.join(FILES_DIR, "lock_info")
 COUNT_FILE_PATH = os.path.join(FILES_DIR, "count")
 
+# 终端位置（存物时自动记录）
+LOCATION = "1号楼2层"   # 可根据实际修改
+
 # 确保目录存在
 os.makedirs(TEMP_DIR, exist_ok=True)
 os.makedirs(IMAGES_DIR, exist_ok=True)
