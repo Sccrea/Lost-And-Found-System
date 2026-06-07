@@ -27,7 +27,6 @@ def take_photo():
         if key == ord(' '):
             cv2.imwrite(temp_path, frame)
             photo_taken = True
-            messagebox.showinfo("拍照成功", f"照片已保存")
             break
         elif key == 27:  # ESC
             break
