@@ -55,15 +55,15 @@ class TakeUI:
 
         back_btn = tk.Button(scrollable, text="返回", bg='#CCCCCC', font=('微软雅黑',10), width=8,
                              command=self.show_name_input)
-        back_btn.grid(row=0, column=0, sticky='nw', pady=(0,20))
+        back_btn.grid(row=0, column=0, sticky='nw', pady=(0,0))
 
-        tk.Label(scrollable, text="选择要取物的柜子", bg='#f0f0f0', font=('微软雅黑',16,'bold')).grid(row=1, column=0, columnspan=4, pady=(0,20))
-
-        # 图例
-        legend = tk.Frame(scrollable, bg='#f0f0f0')
-        legend.grid(row=2, column=0, columnspan=4, pady=(0,20))
-        tk.Label(legend, text="有物品", bg='#4CAF50', fg='white', width=8).pack(side=tk.LEFT, padx=5)
-        tk.Label(legend, text="无物品", bg='#9E9E9E', fg='white', width=8).pack(side=tk.LEFT, padx=5)
+        top_frame = tk.Frame(scrollable, bg='#f0f0f0')
+        top_frame.grid(row=1, column=0, columnspan=4, pady=(0,0), sticky='ew')
+        tk.Label(top_frame, text="选择要取物的柜子", bg='#f0f0f0', font=('微软雅黑',16,'bold')).pack(side=tk.LEFT, padx=(40,10))
+        legend_frame = tk.Frame(top_frame, bg='#f0f0f0')
+        legend_frame.pack(side=tk.LEFT)
+        tk.Label(legend_frame, text="有物品", bg='#4CAF50', fg='white', width=8).pack(side=tk.LEFT, padx=5)
+        tk.Label(legend_frame, text="无物品", bg='#9E9E9E', fg='white', width=8).pack(side=tk.LEFT, padx=5)
 
         lock_status = lock_manager.read_lock_info()
         locker_items = database_manager.get_locker_items()
@@ -76,8 +76,8 @@ class TakeUI:
             bg = '#4CAF50' if status == 1 else '#9E9E9E'
             state = tk.NORMAL if status == 1 else tk.DISABLED
             item_info = locker_items.get(i, {})
-            item_type = item_info.get('item_type', '')
-            text = f"{i}号柜\n{item_type}" if item_type else f"{i}号柜"
+            location = item_info.get('location', '')
+            text = f"{i}号柜"
             btn = tk.Button(scrollable, text=text, bg=bg, fg='white', font=('微软雅黑',10,'bold'),
                             width=10, height=3, state=state,
                             command=lambda lid=i: self._select_locker(lid, locker_items))
@@ -112,9 +112,8 @@ class TakeUI:
             tk.Label(self.info_frame, text=f"{locker_id}号柜无物品", bg='#f0f0f0', font=('微软雅黑',14)).pack(expand=True, fill='both', pady=50)
             return
         container = tk.Frame(self.info_frame, bg='#f0f0f0')
-        container.pack(expand=True, fill='both', padx=20, pady=20)
-        tk.Label(container, text=f"{locker_id}号柜物品信息", bg='#f0f0f0', font=('微软雅黑',16,'bold')).pack()
-        tk.Label(container, text=f"物品类型: {item['item_type']}", bg='#f0f0f0', font=('微软雅黑',12)).pack(pady=5)
+        container.pack(expand=True, fill='both', padx=20, pady=0)
+        tk.Label(container, text=f"{locker_id}号柜物品图片", bg='#f0f0f0', font=('微软雅黑',16,'bold')).pack()
         photo_path = os.path.join(config.IMAGES_DIR, item['photo_name'])
         if os.path.exists(photo_path):
             # 创建临时标签显示照片
@@ -126,14 +125,14 @@ class TakeUI:
         take_btn.pack(pady=20)
 
     def _confirm_take(self, locker_id, item):
-        confirm = messagebox.askyesno("确认取物", f"确认从 {locker_id} 号柜取物吗？\n\n物品类型: {item['item_type']}\n取物人: {self.taker_name}")
+        confirm = messagebox.askyesno("确认取物", f"确认从 {locker_id} 号柜取物吗？\n\n位置: {item['location']}\n取物人: {self.taker_name}")
         if not confirm:
             return
         take_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         database_manager.update_take_record(locker_id, self.taker_name, take_time)
         lock_manager.update_lock_info(lock_id=locker_id, status=0)
         open_lock.open_lock(lock_number=locker_id)
-        messagebox.showinfo("取物成功", f"正在打开 {locker_id} 号柜...\n\n取物成功！\n柜子：{locker_id}号柜\n物品：{item['item_type']}\n取物人：{self.taker_name}")
+        messagebox.showinfo("取物成功", f"正在打开 {locker_id} 号柜...\n\n取物成功！\n柜子：{locker_id}号柜\n位置：{item['location']}\n取物人：{self.taker_name}")
         self.parent.show_main_interface()
 
     def _clear_window(self):
