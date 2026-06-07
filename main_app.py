@@ -33,16 +33,21 @@ class LostAndFoundApp:
         self._clear_window()
         main_frame = tk.Frame(self.root, bg='#f0f0f0')
         main_frame.pack(expand=True, fill='both')
+        location_label = tk.Label(main_frame, text=f"当前位置：{config.LOCATION}", bg='#f0f0f0',
+                              font=('微软雅黑', 24,'bold'), fg='#333333')
+        location_label.pack()
+        button_frame = tk.Frame(main_frame, bg='#f0f0f0')
+        button_frame.pack(pady=(20,0))  # 垂直间距
 
-        take_btn = tk.Button(main_frame, text="取物品", bg='#4A90E2', fg='white',
-                             font=('微软雅黑',16,'bold'), width=15, height=3,
-                             command=self.take_ui.show_name_input)
-        take_btn.pack(pady=20)
+        take_btn = tk.Button(button_frame, text="取物品", bg='#4A90E2', fg='white',
+                         font=('微软雅黑', 16, 'bold'), width=12, height=2,
+                         command=self.take_ui.show_name_input)
+        take_btn.pack(side=tk.LEFT, padx=20)
 
-        store_btn = tk.Button(main_frame, text="存物品", bg='#F5A623', fg='white',
-                              font=('微软雅黑',16,'bold'), width=15, height=3,
-                              command=self.store_ui.show)
-        store_btn.pack(pady=10)
+        store_btn = tk.Button(button_frame, text="存物品", bg='#F5A623', fg='white',
+                          font=('微软雅黑', 16, 'bold'), width=12, height=2,
+                          command=self.store_ui.show)
+        store_btn.pack(side=tk.LEFT, padx=20)
 
         preview_btn = tk.Button(main_frame, text="数据预览", bg='#9C27B0', fg='white',
                                 font=('微软雅黑',10), width=10,
@@ -62,14 +67,14 @@ class LostAndFoundApp:
         scrollbar = tk.Scrollbar(frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        columns = ("ID","存物时间","物品类型","照片名称","柜子编号","取物时间","取物人")
+        columns = ("ID","存物时间","位置","照片名称","柜子编号","取物时间","取物人")
         tree = ttk.Treeview(frame, columns=columns, show="headings", yscrollcommand=scrollbar.set)
         for col in columns:
             tree.heading(col, text=col)
             tree.column(col, width=150, anchor=tk.CENTER)
         tree.column("ID", width=50)
         tree.column("存物时间", width=150)
-        tree.column("物品类型", width=100)
+        tree.column("位置", width=100)
         tree.column("照片名称", width=120)
         tree.column("柜子编号", width=80)
         tree.column("取物时间", width=150)
