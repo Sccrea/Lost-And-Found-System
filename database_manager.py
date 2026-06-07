@@ -10,7 +10,7 @@ def init_database():
         CREATE TABLE IF NOT EXISTS item_records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             store_time TEXT NOT NULL,
-            item_type TEXT NOT NULL,
+            location TEXT NOT NULL,
             photo_name TEXT NOT NULL,
             locker_id INTEGER NOT NULL,
             take_time TEXT,
@@ -20,13 +20,13 @@ def init_database():
     conn.commit()
     conn.close()
 
-def save_item_record(store_time, item_type, photo_name, locker_id):
+def save_item_record(store_time, location, photo_name, locker_id):
     """存入物品记录"""
     conn = sqlite3.connect(config.DB_PATH)
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO item_records (store_time, item_type, photo_name, locker_id) VALUES (?, ?, ?, ?)",
-        (store_time, item_type, photo_name, locker_id)
+        "INSERT INTO item_records (store_time, location, photo_name, locker_id) VALUES (?, ?, ?, ?)",
+        (store_time, location, photo_name, locker_id)
     )
     conn.commit()
     conn.close()
@@ -43,13 +43,13 @@ def update_take_record(locker_id, taker_name, take_time):
     conn.close()
 
 def get_locker_items():
-    """获取所有柜子中尚未取出的物品信息，返回 {locker_id: {'item_type':..., 'photo_name':...}}"""
+    """获取所有柜子中尚未取出的物品信息，返回 {locker_id: {'location':..., 'photo_name':...}}"""
     locker_items = {}
     conn = sqlite3.connect(config.DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT locker_id, item_type, photo_name FROM item_records WHERE take_time IS NULL")
-    for locker_id, item_type, photo_name in cursor.fetchall():
-        locker_items[locker_id] = {'item_type': item_type, 'photo_name': photo_name}
+    cursor.execute("SELECT locker_id, location, photo_name FROM item_records WHERE take_time IS NULL")
+    for locker_id, location, photo_name in cursor.fetchall():
+        locker_items[locker_id] = {'location': location, 'photo_name': photo_name}
     conn.close()
     return locker_items
 
