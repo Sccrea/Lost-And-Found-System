@@ -1,7 +1,7 @@
 # Lost-And-Found-System
 
 失物招领系统，使用Python语言编写。
-**使用Python3.8**以获得最佳支持
+使用**Python3.8**以获得最佳支持
 
 **运行main_app.py以启动**
 
