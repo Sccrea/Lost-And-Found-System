@@ -28,7 +28,7 @@ pip install pyinstaller
 ```
 
 ```bash
-pyinstaller --onefile main.py
+pyinstaller --onefile main_app.py
 ```
 ## 函数意义解释
 以下是失物招领管理系统中所有函数的意义解释，按模块划分。(部分内容已过时，仅供参考)
