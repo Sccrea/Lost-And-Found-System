@@ -1,6 +1,8 @@
 # Lost-And-Found-System
 
 失物招领系统，使用Python语言编写。
+
+## 运行与调试
 使用**Python3.8**以获得最佳支持
 
 **运行main_app.py以启动**
@@ -19,11 +21,17 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](https://wwbwa.lanzoue.com/ipOoc3mlazpc)
 
-以下是失物招领管理系统中所有函数的意义解释，按模块划分。
+## 构建可执行文件
+可用Pyinstaller编译:
+```bash
+pyinstaller --onefile main.py
+```
+## 函数意义解释
+以下是失物招领管理系统中所有函数的意义解释，按模块划分。(部分内容已过时，仅供参考)
 
 ---
 
-## 目录
+### 目录
 1. [config.py](#1-configpy)
 2. [lock_manager.py](#2-lock_managerpy)
 3. [photo_manager.py](#3-photo_managerpy)
@@ -36,7 +44,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 10. [main_app.py (类 `LostAndFoundApp`)](#10-main_apppy-类-LostAndFoundApp)
 11. [顶层函数 `main()`](#11-顶层函数-main)
 
-## 1. config.py
+### 1. config.py
 
 | 变量名 | 意义 |
 |--------|------|
@@ -52,7 +60,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 2. lock_manager.py
+### 2. lock_manager.py
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
@@ -61,7 +69,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 3. photo_manager.py
+### 3. photo_manager.py
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
@@ -71,7 +79,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 4. database_manager.py
+### 4. database_manager.py
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
@@ -84,7 +92,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 5. cleanup_manager.py
+### 5. cleanup_manager.py
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
@@ -93,7 +101,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 6. counter_manager.py
+### 6. counter_manager.py
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
@@ -102,7 +110,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 7. open_lock.py
+### 7. open_lock.py
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
@@ -112,7 +120,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 8. store_ui.py (类 `StoreUI`)
+### 8. store_ui.py (类 `StoreUI`)
 
 ### 类属性
 | 属性 | 意义 |
@@ -139,7 +147,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 9. take_ui.py (类 `TakeUI`)
+### 9. take_ui.py (类 `TakeUI`)
 
 ### 类属性
 | 属性 | 意义 |
@@ -167,7 +175,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 10. main_app.py (类 `LostAndFoundApp`)
+### 10. main_app.py (类 `LostAndFoundApp`)
 
 ### 类属性
 | 属性 | 意义 |
@@ -187,7 +195,7 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 
 ---
 
-## 11. 顶层函数 `main()`
+### 11. 顶层函数 `main()`
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
