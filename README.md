@@ -1,6 +1,6 @@
-# Lost-And-Found-System
+# Lost-And-Found-System-Client
 
-失物招领系统，使用Python语言编写。
+失物招领系统客户端，使用Python语言编写。
 
 ## 运行与调试
 使用**Python3.8**以获得最佳支持
