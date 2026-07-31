@@ -24,6 +24,10 @@ WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](h
 ## 构建可执行文件
 可用Pyinstaller编译:
 ```bash
+pip install pyinstaller
+```
+
+```bash
 pyinstaller --onefile main.py
 ```
 ## 函数意义解释
