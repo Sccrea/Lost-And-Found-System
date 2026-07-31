@@ -1,6 +1,7 @@
 import serial
 import time
 import crcmod
+import os
 
 # 创建CRC16校验函数 (Modbus RTU模式)
 crc16 = crcmod.mkCrcFun(0x18005, rev=True, initCrc=0xFFFF)
