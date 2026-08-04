@@ -1,13 +1,11 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import photo_manager
-import lock_manager
-import database_manager
-import counter_manager
 import open_lock
-from datetime import datetime
 import os
 import config
+import network_manager
+import requests
 
 class StoreUI:
     """存物品界面及逻辑"""
@@ -64,42 +62,39 @@ class StoreUI:
             photo_manager.show_photo_preview(self.photo_label, temp_path)
 
     def _next_step(self):
-        temp_photo = photo_manager.config.TEMP_DIR + "/a.jpg"
+        temp_photo = os.path.join(config.TEMP_DIR, "a.jpg")
         if not os.path.exists(temp_photo):
             messagebox.showwarning("输入错误", "请先拍照！")
             return
-        # 获取空闲柜子
-        lock_status = lock_manager.read_lock_info()
+        # 从服务端获取柜子状态
+        try:
+            lockers = network_manager.get_lockers_status()
+        except requests.exceptions.RequestException:
+            messagebox.showerror("网络错误", "无法连接至服务器，请检查网络连接")
+            return
         free_lock = None
-        for lid, status in lock_status.items():
-            if status == 0:
+        for lid, info in lockers.items():
+            if info['status'] == 0:
                 free_lock = lid
                 break
-
         if free_lock is None:
             messagebox.showerror("无空闲柜子", "当前没有空闲柜子，请稍后再试。")
             return
-        # 生成新照片名
-        new_number = counter_manager.get_count() + 1
-        new_photo_name = f"{new_number}.jpg"
+        self._confirm_store(free_lock, temp_photo)
 
-        self.temp_photo_name = new_photo_name
-        self._confirm_store(free_lock)
-
-    def _confirm_store(self, locker_id):
-        location = config.LOCATION
-        confirm = messagebox.askyesno("确认存放",
-                                      f"确认存放物品到 {locker_id} 号柜吗？\n\n"
-                                      f"照片: {self.temp_photo_name}\n位置: {location}")
+    def _confirm_store(self, locker_id, temp_photo_path):
+        confirm = messagebox.askyesno("确认存放", f"确认存放物品到 {locker_id} 号柜吗？")
         if not confirm:
             return
-        store_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # 更新锁状态为已用
-        lock_manager.update_lock_info(lock_id=locker_id, status=1)
-        # 保存到数据库
-        photo_manager.save_temp_photo_to_images(self.temp_photo_name)
-        counter_manager.count()
-        database_manager.save_item_record(store_time, location, self.temp_photo_name, locker_id)
-        open_lock.open_lock(lock_number=locker_id)
-        messagebox.showinfo("操作成功", f"正在打开 {locker_id} 号柜...\n\n物品存放成功！\n位置: {location}\n柜子：{locker_id}号柜")
-        self.parent.show_main_interface()
+        try:
+            # 上传到服务端
+            result = network_manager.store_item(locker_id, temp_photo_path)
+            photo_name = result['photo_name']
+            # 开锁（本地操作）
+            open_lock.open_lock(lock_number=locker_id)
+            messagebox.showinfo("操作成功", f"正在打开 {locker_id} 号柜...\n\n物品存放成功！")
+            self.parent.show_main_interface()
+        except requests.exceptions.RequestException:
+            messagebox.showerror("网络错误", "无法连接至服务器，请检查网络连接")
+        except Exception as e:
+            messagebox.showerror("错误", f"存物失败：{e}")
