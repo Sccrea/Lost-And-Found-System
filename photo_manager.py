@@ -1,6 +1,5 @@
 import cv2
 import os
-import shutil
 from PIL import Image, ImageTk
 import config
 import tkinter.messagebox as messagebox
@@ -49,10 +48,3 @@ def show_photo_preview(photo_label, photo_path):
     photo = ImageTk.PhotoImage(resized)
     photo_label.config(image=photo, text="")
     photo_label.image = photo  # 保持引用
-
-def save_temp_photo_to_images(photo_name):
-    """将临时照片复制到 images 目录，返回新路径"""
-    temp_path = os.path.join(config.TEMP_DIR, "a.jpg")
-    new_path = os.path.join(config.IMAGES_DIR, photo_name)
-    shutil.copy2(temp_path, new_path)
-    return new_path

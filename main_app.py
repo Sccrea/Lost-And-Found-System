@@ -1,11 +1,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import database_manager
-import cleanup_manager
-import lock_manager
 from store_ui import StoreUI
 from take_ui import TakeUI
 import config
+import network_manager
+import requests
 
 class LostAndFoundApp:
     def __init__(self, root):
@@ -14,20 +13,20 @@ class LostAndFoundApp:
         self.root.geometry("700x600")
         self.root.configure(bg='#f0f0f0')
 
-        # 初始化数据库和锁信息
-        database_manager.init_database()
-        # 确保锁信息文件存在（调用一次读取即可自动初始化）
-        lock_manager.read_lock_info()
-
-        # 启动后台清理任务
-        cleanup_manager.start_cleanup_task()
-
         # 初始化UI子模块
         self.store_ui = StoreUI(self)
         self.take_ui = TakeUI(self)
 
         # 显示主界面
         self.show_main_interface()
+        self._register_terminal()
+
+    def _register_terminal(self):
+        try:
+            result = network_manager.register_terminal()
+            print(f"终端信息上传成功: {result['terminal_id']}，位置: {result['location']}")
+        except Exception as e:
+            print(f"终端信息上传失败: {e}，可能网络不可用，使用本地缓存")
 
     def show_main_interface(self):
         self._clear_window()
@@ -55,7 +54,6 @@ class LostAndFoundApp:
         preview_btn.pack(side=tk.BOTTOM, anchor=tk.SW, padx=10, pady=10)
 
     def _show_data_preview(self):
-        """数据预览窗口（数据库查看）"""
         preview = tk.Toplevel(self.root)
         preview.title("物品存取记录")
         preview.geometry("900x500")
@@ -67,22 +65,37 @@ class LostAndFoundApp:
         scrollbar = tk.Scrollbar(frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        columns = ("ID","存物时间","位置","照片名称","柜子编号","取物时间","取物人")
+        columns = ("ID","存物时间","终端ID","照片名称","柜子编号","取物时间","取物人")
         tree = ttk.Treeview(frame, columns=columns, show="headings", yscrollcommand=scrollbar.set)
         for col in columns:
             tree.heading(col, text=col)
             tree.column(col, width=150, anchor=tk.CENTER)
         tree.column("ID", width=50)
         tree.column("存物时间", width=150)
-        tree.column("位置", width=100)
+        tree.column("终端ID", width=100)
         tree.column("照片名称", width=120)
         tree.column("柜子编号", width=80)
         tree.column("取物时间", width=150)
         tree.column("取物人", width=100)
 
-        rows = database_manager.get_all_records()
-        for row in rows:
-            processed = ["" if v is None else v for v in row]
+        try:
+            records = network_manager.get_all_records()
+        except requests.exceptions.RequestException:
+            messagebox.showerror("网络错误", "无法连接至服务器，请检查网络连接")
+            preview.destroy()
+            return
+
+        for row in records:
+            values = [
+                row.get('id', ''),
+                row.get('store_time', ''),
+                row.get('terminal_id', ''),
+                row.get('photo_name', ''),
+                row.get('locker_id', ''),
+                row.get('take_time', ''),
+                row.get('taker_name', '')
+            ]
+            processed = ["" if v is None else v for v in values]
             tree.insert("", tk.END, values=processed)
 
         tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)

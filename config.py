@@ -11,23 +11,17 @@ else:
 # 各子目录路径
 FILES_DIR = os.path.join(BASE_DIR, "files")
 TEMP_DIR = os.path.join(FILES_DIR, "temp")
-IMAGES_DIR = os.path.join(FILES_DIR, "images")
-DB_PATH = os.path.join(FILES_DIR, "lost_and_found.db")
-LOCK_INFO_PATH = os.path.join(FILES_DIR, "lock_info")
-COUNT_FILE_PATH = os.path.join(FILES_DIR, "count")
 CONFIG_JSON_PATH = os.path.join(FILES_DIR, "config.json")
 
 # 确保目录存在
 os.makedirs(TEMP_DIR, exist_ok=True)
-os.makedirs(IMAGES_DIR, exist_ok=True)
 
 # 默认配置（可扩展其他项）
 DEFAULT_CONFIG = {
-    "LOCATION": "1号楼2层",
-    "SERVER_ADDR": "",
-    "SERVER_PORT": "",
+    "TERMINAL_ID": "0",
+    "LOCATION": "1号楼1层",
+    "SERVER_URL": "https://127.0.0.1:5000",
     "AUTH_METHOD": 0,
-    "CLEANUP_DAYS": 127,
     "ENABLE_LOCK": True
 }
 
@@ -54,9 +48,8 @@ def ensure_config():
 
 # 加载配置（模块导入时自动执行）
 _config = ensure_config()
+TERMINAL_ID = _config.get("TERMINAL_ID", DEFAULT_CONFIG["TERMINAL_ID"])
 LOCATION = _config.get("LOCATION", DEFAULT_CONFIG["LOCATION"])
-SERVER_ADDR = _config.get("SERVER_ADDR", DEFAULT_CONFIG["SERVER_ADDR"])
-SERVER_PORT = _config.get("SERVER_PORT", DEFAULT_CONFIG["SERVER_PORT"])
+SERVER_URL = _config.get("SERVER_URL", DEFAULT_CONFIG["SERVER_URL"])
 AUTH_METHOD = _config.get("AUTH_METHOD", DEFAULT_CONFIG["AUTH_METHOD"])
-CLEANUP_DAYS = _config.get("CLEANUP_DAYS", DEFAULT_CONFIG["CLEANUP_DAYS"])
 ENABLE_LOCK = _config.get("ENABLE_LOCK", DEFAULT_CONFIG["ENABLE_LOCK"])

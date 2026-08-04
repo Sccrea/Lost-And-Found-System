@@ -2,7 +2,10 @@
 
 失物招领系统客户端，使用Python语言编写。
 
+[WinSCP与DB Browser for SQLite下载](https://wwbwa.lanzoue.com/ipOoc3mlazpc)
+
 ## 运行与调试
+### 启动
 使用**Python3.8**以获得最佳支持
 
 **运行main_app.py以启动**
@@ -19,7 +22,20 @@ pip install -r requirements.txt
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-WinSCP与DB Browser for SQLite下载: [https://wwbwa.lanzoue.com/ipOoc3mlazpc](https://wwbwa.lanzoue.com/ipOoc3mlazpc)
+### 调试
+#### 配置文件
+运行程序自动生成配置文件，位于`./files/config.json`
+| 字段 | 类型 | 默认值 | 作用与意义 |
+| :--- | :--- | :--- | :--- |
+| **`TERMINAL_ID`** | String | `"0"` | **终端唯一标识符**。用于向服务端区分不同的失物招领终端设备（如设备序列号或自定义编号）。服务端会依据此 ID 记录物品是由哪个终端存入的，并在查询柜子状态时进行隔离。 |
+| **`LOCATION`** | String | `"1号楼1层"` | **终端位置描述**。用于在主界面顶部显示（如“当前位置：1号楼1层”），同时在上传终端信息时会发送给服务端，方便管理员在后台查看设备分布。 |
+| **`SERVER_URL`** | String | `"https://127.0.0.1:5000"` | **服务端接口地址**。客户端所有网络请求（存物、取物、查询状态等）都会基于此 URL 拼接路由（如 `/api/store`）。默认指向本机 HTTPS 端口，实际部署时需修改为服务端的真实 IP 和端口（例如 `https://192.168.1.100:5000`）。 |
+| **`AUTH_METHOD`** | Integer | `0` | **取物认证方式（预留字段）**。当前版本未启用（代码中未使用），仅支持3种状态：`0`为启用刷卡验证，`1`为启用人脸识别验证，`2`为同时启用刷卡验证与人脸识别验证，且验证结果需一致|
+| **`ENABLE_LOCK`** | Boolean | `true` | **电锁功能开关**。控制实际是否通过串口操作物理电锁。若设为 `false`，点击“存物”或“取物”时，程序会跳过串口开锁指令（仅打印日志），适合**无硬件环境的开发调试**或纯软件演示模式。 |
+
+---
+
+**如果设备上没有连接锁硬件，请将`ENABLE_LOCK`值设为`false`以禁止发送指令到锁信息**
 
 ## 构建可执行文件
 可用Pyinstaller编译:
@@ -31,179 +47,175 @@ pip install pyinstaller
 pyinstaller --onefile main_app.py
 ```
 ## 函数意义解释
-以下是失物招领管理系统中所有函数的意义解释，按模块划分。(部分内容已过时，仅供参考)
+以下是失物招领管理系统客户端中所有函数的意义解释，按模块划分。(部分内容已过时，仅供参考)(更新时间: 2026年8月5日 3:28)
 
 ---
 
 ### 目录
-1. [config.py](#1-configpy)
-2. [lock_manager.py](#2-lock_managerpy)
-3. [photo_manager.py](#3-photo_managerpy)
-4. [database_manager.py](#4-database_managerpy)
-5. [cleanup_manager.py](#5-cleanup_managerpy)
-6. [counter_manager.py](#6-counter_managerpy)
-7. [open_lock.py](#7-open_lockpy)
-8. [store_ui.py (类 `StoreUI`)](#8-store_uipy-类-StoreUI)
-9. [take_ui.py (类 `TakeUI`)](#9-take_uipy-类-TakeUI)
-10. [main_app.py (类 `LostAndFoundApp`)](#10-main_apppy-类-LostAndFoundApp)
-11. [顶层函数 `main()`](#11-顶层函数-main)
+1. [config.py](#1-configpy)  
+2. [network_manager.py](#2-network_managerpy)  
+3. [open_lock.py](#3-open_lockpy)  
+4. [photo_manager.py](#4-photo_managerpy)  
+5. [store_ui.py（类 `StoreUI`）](#5-store_uipy类-storeui)  
+6. [take_ui.py（类 `TakeUI`）](#6-take_uipy类-takeui)  
+7. [main_app.py（类 `LostAndFoundApp` 与 `main()`）](#7-main_apppy类-lostandfoundapp-与-main)
+
+---
 
 ### 1. config.py
 
+客户端配置管理模块，负责加载 `files/config.json` 并定义全局路径常量。
+
+#### 全局变量
+
 | 变量名 | 意义 |
 |--------|------|
-| `BASE_DIR` | 获取当前文件所在目录的绝对路径，用于定位所有文件资源。 |
-| `FILES_DIR` | 存放所有数据文件的根目录（`files/`）。 |
-| `TEMP_DIR` | 临时文件目录（`files/temp/`），用于存放拍照时的临时照片。 |
-| `IMAGES_DIR` | 存储正式物品照片的目录（`files/images/`）。 |
-| `DB_PATH` | SQLite 数据库文件的完整路径（`files/lost_and_found.db`）。 |
-| `LOCK_INFO_PATH` | 锁信息文本文件的路径（`files/lock_info`），记录每个柜子的占用状态。 |
-| `COUNT_FILE_PATH` | 计数器文件的路径（`files/count`），用于生成唯一照片文件名。 |
+| `BASE_DIR` | 客户端可执行文件或脚本所在目录（打包环境下为 `sys.executable` 所在目录）。 |
+| `FILES_DIR` | 数据存储根目录（`BASE_DIR/files/`）。 |
+| `TEMP_DIR` | 临时文件目录（`FILES_DIR/temp/`），存放拍照时的临时照片。 |
+| `CONFIG_JSON_PATH` | 客户端配置文件 `config.json` 的完整路径。 |
+| `TERMINAL_ID` | 终端唯一标识，从 `config.json` 读取，默认为 `"0"`。 |
+| `LOCATION` | 终端位置描述，从 `config.json` 读取，默认为 `"1号楼1层"`。 |
+| `SERVER_URL` | 服务端基础 URL（例如 `https://127.0.0.1:5000`），从 `config.json` 读取。 |
+| `AUTH_METHOD` | 预留认证方式字段，当前未使用，默认为 `0`。 |
+| `ENABLE_LOCK` | 是否启用实际电锁控制（`True`/`False`），默认 `True`。 |
 
-> 文件加载时自动创建 `TEMP_DIR` 和 `IMAGES_DIR` 目录。
-
----
-
-### 2. lock_manager.py
+#### 函数
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
-| `read_lock_info()` | 无 | `dict` (lock_id → status) | 读取 `lock_info` 文件，返回所有柜子的状态字典（0=空闲，1=已用）。若文件不存在则自动初始化8个空闲柜子。 |
-| `update_lock_info()` | `lock_status_dict=None, lock_id=None, status=None` | `bool` | 更新锁信息。支持两种调用：①传入完整字典 `lock_status_dict`；②传入单个柜子ID和新状态。成功写入文件返回 `True`，否则返回 `False`。 |
+| `ensure_config()` | 无 | `dict` | 检查 `CONFIG_JSON_PATH` 是否存在且有效；若缺失或损坏则使用 `DEFAULT_CONFIG` 覆盖，并返回完整配置字典。该函数在模块导入时自动执行，填充全局变量。 |
 
 ---
 
-### 3. photo_manager.py
+### 2. network_manager.py
+
+客户端网络通信模块，封装所有与服务端交互的 API 调用。
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
-| `take_photo()` | 无 | `bool` | 打开摄像头，按空格键拍照并保存到 `TEMP_DIR/a.jpg`，按ESC取消。拍照成功返回 `True`，否则 `False`。 |
-| `show_photo_preview()` | `photo_label` (tkinter.Label), `photo_path` (str) | 无 | 在指定的 `Label` 控件上显示给定路径的照片，自动缩放至400x300以内保持比例。 |
-| `save_temp_photo_to_images()` | `photo_name` (str) | `str` (新路径) | 将临时照片 `a.jpg` 复制到 `IMAGES_DIR` 并重命名为 `photo_name`，返回新文件的完整路径。 |
+| `get_lockers_status()` | 无 | `dict`（键为柜号 int，值为包含 `status`、`terminal_id`、`photo_name` 的字典） | 向服务端 `GET /api/lockers` 请求当前终端下所有柜子的占用状态（0=空闲，1=已用）。 |
+| `store_item(locker_id, photo_path)` | `locker_id`：int 柜号<br>`photo_path`：str 照片本地路径 | `dict`（含 `message`、`photo_name`、`id`） | 向服务端 `POST /api/store` 上传照片和柜号，完成存物操作。成功返回服务器响应。 |
+| `take_item(locker_id, taker_name)` | `locker_id`：int 柜号<br>`taker_name`：str 取物人姓名 | `dict`（含 `message`） | 向服务端 `POST /api/take` 通知取物，服务端更新对应记录的取物时间和取物人。 |
+| `get_photo_url(photo_name)` | `photo_name`：str 照片文件名 | `str`（完整 URL） | 根据照片文件名拼接完整的访问 URL（`{SERVER_URL}/images/{photo_name}`）。 |
+| `get_all_records()` | 无 | `list`（每个元素为记录字典） | 向服务端 `GET /get_data` 获取所有存取记录（含已取），用于数据预览。 |
+| `register_terminal()` | 无 | `dict`（含 `terminal_id`、`location` 等） | 向服务端 `POST /api/register` 上报当前终端的 ID 和位置，服务端记录或更新终端信息。 |
+
+> 所有函数在请求失败时抛出 `requests.exceptions.RequestException`，调用方需处理异常。
 
 ---
 
-### 4. database_manager.py
+### 3. open_lock.py
+
+电锁控制模块，通过串口（RS‑485）操作锁控板。
+
+#### 全局函数
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
-| `init_database()` | 无 | 无 | 初始化数据库，创建 `item_records` 表（如果不存在）。表中字段包括：id、存物时间、物品类型、照片名、柜子编号、取物时间、取物人。 |
-| `save_item_record()` | `store_time, item_type, photo_name, locker_id` | 无 | 插入一条新的存物记录（取物时间和取物人留空）。 |
-| `update_take_record()` | `locker_id, taker_name, take_time` | 无 | 更新指定柜子中**尚未取出**的那条记录，填写取物时间和取物人姓名。 |
-| `get_locker_items()` | 无 | `dict` | 查询所有尚未取出的物品，返回字典：`{locker_id: {'item_type':..., 'photo_name':...}}`。 |
-| `get_all_records()` | 无 | `list of tuples` | 获取数据库中的所有记录（按ID降序），用于数据预览窗口。 |
-| `delete_old_records_and_photos()` | `before_date_str` (str) | `(deleted_count, photo_deleted_count)` | 删除 `store_time` 早于指定日期的记录，同时删除对应的照片文件。返回删除的记录数和照片数。 |
+| `crc16(data)` | `data`：bytes 或 bytearray 类型 | `int` | 计算 Modbus RTU 标准 CRC‑16 校验值（多项式 0x8005，初始 0xFFFF，输入/输出反转）。 |
+| `control_lock(serial_port, device_addr, lock_num, action, duration=5)` | `serial_port`：已打开的 `serial.Serial` 对象<br>`device_addr`：int 设备地址（1‑255）<br>`lock_num`：int 锁路号（0‑7）<br>`action`：int（0=关锁，1=开锁）<br>`duration`：int 开锁持续时间（秒），默认 5 | 无 | 构造 Modbus 指令并发送至串口，控制指定锁路的开关。若 `duration>0` 则附加持续时间字段（非标准扩展）。发送后等待 100ms 并读取响应。 |
+| `open_lock(lock_number)` | `lock_number`：int 锁路号（1‑8） | 无 | 根据 `config.ENABLE_LOCK` 决定是否实际开锁：若为 `True`，则打开串口 `/dev/ttyUSB0`（9600,8N1）向地址 0x00 发送开锁指令。若禁用，则仅打印柜号（调试用）。 |
 
 ---
 
-### 5. cleanup_manager.py
+### 4. photo_manager.py
+
+摄像头拍照与图片预览工具。
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
-| `cleanup_old_records()` | 无 | 无 | 计算127天前的日期，调用 `database_manager.delete_old_records_and_photos()` 执行清理，并打印结果。 |
-| `start_cleanup_task()` | 无 | 无 | 启动一个后台守护线程，每小时调用一次 `cleanup_old_records()`，实现自动定期清理。 |
+| `take_photo()` | 无 | `bool` | 打开摄像头（索引0），显示实时画面。按 `Space` 键拍照保存至 `TEMP_DIR/a.jpg` 并返回 `True`；按 `ESC` 取消拍照返回 `False`。 |
+| `show_photo_preview(photo_label, photo_path)` | `photo_label`：tkinter.Label 控件<br>`photo_path`：str 照片路径 | 无 | 读取 `photo_path` 并缩放至最大 400×300 像素，显示在 `photo_label` 上。若文件不存在则无操作。 |
 
 ---
 
-### 6. counter_manager.py
+### 5. store_ui.py（类 `StoreUI`）
 
-| 函数名 | 参数 | 返回值 | 意义 |
-|--------|------|--------|------|
-| `count()` | 无 | `int` | 读取 `count` 文件中的数字，返回下一个值并将文件中的数字加1。若文件不存在则初始化为1并返回1。用于生成递增的照片文件名（如 `1.jpg`、`2.jpg`）。 |
-| `get_count()` | 无 | `int` | 仅读取 `count` 文件中的数字，不改变计数值|
+存物品流程的用户界面及控制逻辑。
 
----
+#### 类属性（实例）
 
-### 7. open_lock.py
-
-| 函数名 | 参数 | 返回值 | 意义 |
-|--------|------|--------|------|
-| `crc16` | `data`：bytes 或 bytearray 类型，需要计算 CRC 的数据 | `int` | 对输入数据计算 Modbus RTU 标准的 CRC‑16 校验值。采用多项式 `0x8005`、初始值 `0xFFFF`、数据与结果均按位反转，完全兼容 Modbus 协议。 |
-| `control_lock` | `serial_port`：`serial.Serial` 对象，已打开的串口<br>`device_addr`：`int`，锁控板地址（1‑255）<br>`lock_num`：`int`，锁路号（0‑7）<br>`action`：`int`，0 为关锁，1 为开锁<br>`duration`：`int`，开锁持续时间（秒），默认 5 | `None` | 向指定串口发送自定义的 Modbus RTU 指令（基于功能码 05），控制锁控板上某一锁路的开关。若 `duration > 0`，还会追加持续时间字段（非标准扩展）。发送后等待 100 ms 并读取应答。 |
-| `open_lock` | `lock_number`：`int`，期望打开的锁路号 | `None` | 封装打开指定锁路的操作，通过串口 `/dev/ttyUSB0`（9600,8N1）向地址 `0x00` 的锁控板发送开锁指令。|
-
----
-
-### 8. store_ui.py (类 `StoreUI`)
-
-### 类属性
 | 属性 | 意义 |
 |------|------|
-| `parent` | 主应用实例，用于调用界面切换方法。 |
+| `parent` | 主应用实例（`LostAndFoundApp`），用于界面切换。 |
 | `root` | Tkinter 根窗口。 |
-| `temp_item_type` | 暂存用户选择的物品类型，用于后续存入数据库。 |
-| `temp_photo_name` | 暂存拍照后生成的照片文件名。 |
-| `item_type_var` | Tkinter 变量，绑定物品类型下拉框。 |
-| `photo_label` | 显示照片预览的 Label 控件。 |
-| `photo_status` | 显示拍照状态的 Label（“未拍照”/“已拍照”）。 |
+| `photo_label` | 用于显示照片预览的 Label 控件。 |
 
-### 方法
+#### 方法
 
 | 方法名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
-| `__init__` | `parent_app` | 无 | 初始化界面模块，保存父应用引用。 |
-| `show()` | 无 | 无 | 显示存物品的主界面：物品类型下拉框、拍照按钮、照片预览区域、下一步按钮。 |
-| `_clear_window()` | 无 | 无 | 清空根窗口中的所有子控件，用于切换界面。 |
-| `_take_photo_wrapper()` | 无 | 无 | 调用 `photo_manager.take_photo()` 拍照，若成功则更新状态标签并显示预览。 |
-| `_next_step()` | 无 | 无 | 验证物品类型和照片是否已选/拍，若通过则生成新照片文件名、复制照片到正式目录，然后调用 `_show_locker_selection()` 显示柜子选择界面。 |
-| `_show_locker_selection()` | 无 | 无 | 显示柜子选择界面：展示8个柜子的状态（空闲绿色/已用红色），空闲柜子可点击。 |
-| `_confirm_store()` | `locker_id` (int) | 无 | 弹出确认对话框，用户确认后记录存物时间、更新锁状态为已用、保存到数据库，最后返回主界面。 |
+| `__init__(parent_app)` | `parent_app`：主应用实例 | 无 | 保存父应用引用。 |
+| `show()` | 无 | 无 | 显示存物品主界面：包含“拍照”按钮、照片预览区域和“存物品”按钮。 |
+| `_clear_window()` | 无 | 无 | 清空根窗口所有子控件（用于界面切换）。 |
+| `_take_photo_wrapper()` | 无 | 无 | 调用 `photo_manager.take_photo()` 拍照，若成功则更新照片预览。 |
+| `_next_step()` | 无 | 无 | 检查是否已拍照，若无则提示；否则从服务端获取柜子状态，查找空闲柜子，若有则调用 `_confirm_store()`，若无则提示无空闲柜子。 |
+| `_confirm_store(locker_id, temp_photo_path)` | `locker_id`：int 柜号<br>`temp_photo_path`：str 临时照片路径 | 无 | 弹出确认对话框，确认后调用 `network_manager.store_item()` 上传照片和柜号，成功后调用 `open_lock.open_lock()` 开锁，显示成功信息并返回主界面。若网络异常则提示错误。 |
 
 ---
 
-### 9. take_ui.py (类 `TakeUI`)
+### 6. take_ui.py（类 `TakeUI`）
 
-### 类属性
+取物品流程的用户界面及控制逻辑。
+
+#### 类属性（实例）
+
 | 属性 | 意义 |
 |------|------|
 | `parent` | 主应用实例。 |
 | `root` | Tkinter 根窗口。 |
 | `taker_name` | 暂存取物人姓名。 |
-| `selected_locker_id` | 当前选中的柜子ID。 |
-| `name_var` | Tkinter 变量，绑定取物人姓名输入框。 |
-| `locker_buttons` | 存储柜子按钮的列表，用于高亮选中效果。 |
-| `info_frame` | 用于显示物品详情的 Frame 容器。 |
+| `selected_locker_id` | 当前选中柜子的编号。 |
+| `lockers_data` | 从服务端获取的最新柜子状态字典。 |
+| `locker_buttons` | 存储 8 个柜子按钮的列表，用于高亮操作。 |
+| `info_frame` | 显示物品详情的 Frame 容器。 |
+| `name_var` | `tk.StringVar`，绑定姓名输入框。 |
 
-### 方法
+#### 方法
 
 | 方法名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
-| `__init__` | `parent_app` | 无 | 初始化模块，保存父应用引用。 |
-| `show_name_input()` | 无 | 无 | 显示姓名输入界面：一个输入框和“下一步”按钮。 |
-| `_show_locker_selection()` | 无 | 无 | 根据输入的姓名，显示柜子选择界面：展示有物品的柜子（绿色）和无物品的柜子（灰色）。点击绿色柜子可查看详情。 |
-| `_show_default_info()` | 无 | 无 | 在物品信息显示区域显示“请选择上方柜子查看物品信息”的提示。 |
-| `_select_locker()` | `locker_id, locker_items` | 无 | 处理柜子按钮点击：高亮选中按钮，并调用 `_show_item_info()` 显示该柜子的物品信息。 |
-| `_show_item_info()` | `locker_id, locker_items` | 无 | 在 `info_frame` 中显示选中柜子的物品类型、照片以及“确认取物”按钮。 |
-| `_confirm_take()` | `locker_id, item` | 无 | 弹出确认对话框，用户确认后记录取物时间、更新数据库、将锁状态改为空闲，最后返回主界面。 |
-| `_clear_window()` | 无 | 无 | 清空根窗口中的所有子控件。 |
+| `__init__(parent_app)` | `parent_app`：主应用实例 | 无 | 保存父应用引用。 |
+| `show_name_input()` | 无 | 无 | 显示姓名输入界面：输入框 + “下一步”按钮。 |
+| `_show_locker_selection()` | 无 | 无 | 读取姓名后，调用 `network_manager.get_lockers_status()` 获取柜子状态，显示 8 个按钮（有物品绿色可点，无物品灰色禁用）。点击绿色按钮触发 `_select_locker()`。 |
+| `_show_default_info()` | 无 | 无 | 在 `info_frame` 中显示“请选择上方柜子查看物品信息”的提示。 |
+| `_select_locker(locker_id)` | `locker_id`：int 柜号 | 无 | 高亮选中按钮，调用 `_show_item_info()` 显示该柜子的物品信息。 |
+| `_show_item_info(locker_id)` | `locker_id`：int 柜号 | 无 | 在 `info_frame` 中显示该柜子的照片（从服务端下载）、并放置“确认取物”按钮。 |
+| `_download_photo(photo_name)` | `photo_name`：str 照片文件名 | `str` 或 `None` | 从服务端下载照片到 `TEMP_DIR`，成功返回本地路径，失败返回 `None`。 |
+| `_confirm_take(locker_id, item)` | `locker_id`：int 柜号<br>`item`：dict（该柜子物品信息） | 无 | 弹出确认对话框，确认后调用 `network_manager.take_item()` 通知服务端，然后调用 `open_lock.open_lock()` 开锁，显示成功信息并返回主界面。 |
+| `_clear_window()` | 无 | 无 | 清空根窗口所有子控件。 |
 
 ---
 
-### 10. main_app.py (类 `LostAndFoundApp`)
+### 7. main_app.py（类 `LostAndFoundApp` 与 `main()`）
 
-### 类属性
+主应用程序入口，管理界面切换和全局状态。
+
+#### 类 `LostAndFoundApp`
+
+##### 类属性（实例）
+
 | 属性 | 意义 |
 |------|------|
 | `root` | Tkinter 根窗口。 |
-| `store_ui` | `StoreUI` 实例，负责存物品流程。 |
-| `take_ui` | `TakeUI` 实例，负责取物品流程。 |
+| `store_ui` | `StoreUI` 实例。 |
+| `take_ui` | `TakeUI` 实例。 |
 
-### 方法
+##### 方法
 
 | 方法名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
-| `__init__` | `root` | 无 | 初始化主应用：设置窗口标题和大小、初始化数据库、确保锁信息文件存在、启动后台清理任务、创建 `StoreUI` 和 `TakeUI` 子模块、显示主界面。 |
-| `show_main_interface()` | 无 | 无 | 显示主界面：两个大按钮（“取物品”、“存物品”）和一个“数据预览”按钮。 |
-| `_show_data_preview()` | 无 | 无 | 创建一个新窗口，使用 `ttk.Treeview` 表格显示数据库中所有记录。 |
-| `_clear_window()` | 无 | 无 | 清空根窗口中的所有子控件。 |
+| `__init__(root)` | `root`：Tkinter 根窗口 | 无 | 初始化窗口标题和大小，创建 `StoreUI` 和 `TakeUI` 实例，显示主界面，并调用 `_register_terminal()` 上传终端信息。 |
+| `_register_terminal()` | 无 | 无 | 调用 `network_manager.register_terminal()` 向服务端注册终端（异常时仅打印日志）。 |
+| `show_main_interface()` | 无 | 无 | 显示主界面：位置标签、“取物品”和“存物品”大按钮，以及“数据预览”按钮。 |
+| `_show_data_preview()` | 无 | 无 | 弹出新窗口，以表格（`ttk.Treeview`）展示所有存取记录（调用 `network_manager.get_all_records()`）。 |
+| `_clear_window()` | 无 | 无 | 清空根窗口所有子控件。 |
 
----
-
-### 11. 顶层函数 `main()`
+#### 顶层函数
 
 | 函数名 | 参数 | 返回值 | 意义 |
 |--------|------|--------|------|
-| `main()` | 无 | 无 | 程序入口：创建 `tk.Tk` 根窗口，实例化 `LostAndFoundApp`，启动 Tkinter 主事件循环。 |
+| `main()` | 无 | 无 | 程序入口：创建 `tk.Tk` 实例，实例化 `LostAndFoundApp`，启动 Tkinter 主事件循环。 |
 
 ---
-
