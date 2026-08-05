@@ -39,12 +39,6 @@ def get_photo_url(photo_name):
     """获取照片的完整URL"""
     return f"{SERVER_URL}/images/{photo_name}"
 
-def get_all_records():
-    """从服务端获取所有存取记录，失败时抛出异常"""
-    resp = requests.get(f"{SERVER_URL}/get_data", timeout=5, verify=False)
-    resp.raise_for_status()
-    return resp.json()
-
 def register_terminal():
     url = f"{SERVER_URL}/api/register"
     payload = {

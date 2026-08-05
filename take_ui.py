@@ -8,6 +8,7 @@ import open_lock
 import config
 import network_manager
 import photo_manager
+from face_recognize import FaceRecognition
 
 class TakeUI:
     """取物品界面及逻辑（客户端‑服务器版）"""
@@ -19,31 +20,23 @@ class TakeUI:
         self.lockers_data = {}          # 从服务端获取的完整柜子状态
         self.locker_buttons = []        # 用于高亮
 
-    def show_name_input(self):
-        """第一步：输入取物人姓名"""
-        self._clear_window()
-        frame = tk.Frame(self.root, bg='#f0f0f0')
-        frame.pack(expand=True, fill='both', padx=20, pady=20)
-
-        back_btn = tk.Button(frame, text="返回", bg='#CCCCCC', font=('微软雅黑',10), width=8,
-                             command=self.parent.show_main_interface)
-        back_btn.grid(row=0, column=0, sticky='nw', pady=(0,20))
-
-        tk.Label(frame, text="请输入取物人姓名", bg='#f0f0f0', font=('微软雅黑',16,'bold')).grid(row=1, column=0, pady=(0,20))
-        self.name_var = tk.StringVar()
-        entry = tk.Entry(frame, textvariable=self.name_var, font=('微软雅黑',12), width=20)
-        entry.grid(row=2, column=0, pady=(0,20))
-        next_btn = tk.Button(frame, text="下一步", bg='#4CAF50', fg='white', font=('微软雅黑',12,'bold'), width=10,
-                             command=self._show_locker_selection)
-        next_btn.grid(row=3, column=0, pady=(10,0))
+    def show(self):
+        """第一步：获取取物人姓名"""
+        auth = config.AUTH_METHOD
+        if auth == 0:
+            messagebox.showerror("错误", "刷卡验证暂未制作")
+        elif auth == 1:
+            fr = FaceRecognition()
+            self.taker_name = fr.run_recognition()
+            if self.taker_name is not None:
+                self._show_locker_selection()
+        elif auth == 2:
+            messagebox.showerror("错误", "刷卡验证暂未制作")
+        else:
+            messagebox.showerror("验证失败", "无效的验证方式")
 
     def _show_locker_selection(self):
         """第二步：显示柜子选择界面"""
-        taker = self.name_var.get().strip()
-        if not taker:
-            messagebox.showwarning("输入错误", "请输入取物人姓名！")
-            return
-        self.taker_name = taker
 
         self._clear_window()
         main_frame = tk.Frame(self.root, bg='#f0f0f0')
@@ -61,7 +54,7 @@ class TakeUI:
 
         # 返回按钮
         back_btn = tk.Button(scrollable, text="返回", bg='#CCCCCC', font=('微软雅黑',10), width=8,
-                             command=self.show_name_input)
+                             command=self.parent.show_main_interface)
         back_btn.grid(row=0, column=0, sticky='nw', pady=(0,0))
 
         # 图例
